@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from tkinter import * #type: ignore
 from customtkinter import * #type: ignore
-from ctk_components import *
 import customtkinter as ctk
 import tkinter as tk
 from mydb import *
