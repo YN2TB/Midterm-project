@@ -17,6 +17,7 @@ from tkinter import ttk
 import datetime as dt
 from tkinter import messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from PIL import Image
 
 # Khởi tạo đối tượng database cho expense và income
 expense_data = Database(db='finance.db', 
@@ -94,6 +95,8 @@ def saveRecord_ex():
         messagebox.showwarning('Warning', 'Please insert an item')
     elif transaction_date_ex.get() == '' or validate_datetime(transaction_date_ex.get()) == False:
         messagebox.showwarning('Warning', 'Please choose a date')
+    elif str(item_amt_ex.get()).isnumeric() == False or [',', '.'] in list(item_amt_ex.get()):
+        messagebox.showwarning('Warning', 'Please enter a valid number')
     else:
     # Lưu vào cơ sở dữ liệu
         expense_data.insert_ex(
@@ -122,6 +125,8 @@ def saveRecord_in():
         messagebox.showwarning('Warning', 'Please insert an item')
     elif transaction_date_in.get() == '' or validate_datetime(transaction_date_in.get()) == False:
         messagebox.showwarning('Warning', 'Please enter a validated date')
+    elif str(item_amt_in.get()).isnumeric() == False or [',', '.'] in list(item_amt_in.get()):
+        messagebox.showwarning('Warning', 'Please enter a valid number')
     else:
         # Lưu vào cơ sở dữ liệu
         income_data.insert_in(
@@ -139,9 +144,7 @@ def saveRecord_in():
         ))
         count_in += 1
     
-        update_data()
-
-    
+        update_data()    
 
 # Thiết lập ngày hiện tại
 def setDate_ex():
@@ -278,14 +281,14 @@ def refreshData_ex():
     for item in expense_table.get_children():
         expense_table.delete(item)
     # Lấy lại tất cả các bản ghi từ database
-    fetch_records_ex()
+    retrive_records()
 
 def refreshData_in():
     # Xóa tất cả bản ghi hiện có trong Treeview
     for item in income_table.get_children():
         income_table.delete(item)
     # Lấy lại tất cả các bản ghi từ database
-    fetch_records_in()
+    retrive_records()
 
 # Xóa bản ghi đã chọn
 def deleteRow_ex():
@@ -379,6 +382,7 @@ def update_total_balance():
        
 # Hàm để gắn vào cuối mỗi hàm sau khi chỉnh sửa data
 def update_data():
+    clearEntries_ex()
     clearEntries_in()
     update_total_balance()
     update_plot('months')
@@ -388,7 +392,8 @@ def update_data():
 # Phục hồi record 
 def retrive_records():
     global count_ex, count_in
-    
+    count_ex = 0
+    count_in = 0
     for expense in expense_data.fetch_ex():
         expense_table.insert(parent='', index = END, iid = count_ex, values=(
             count_ex + 1,
@@ -465,13 +470,25 @@ left_top.pack(side="top", expand=False, fill=BOTH)
 right_top = CTkFrame(right_frame)
 right_top.pack(side="top", expand=False, fill=BOTH)
 
+refresh_btn = CTkButton(
+    left_top,
+    text = "",
+    image = CTkImage(light_image=Image.open("assets\\icon.png"), size = (10, 10)), 
+    command = lambda: [refreshData_ex(), refreshData_in()], 
+    fg_color = '#66b3d4', 
+    border_color = 'black', 
+    border_width = 1,
+    height = 10,
+    width = 10,
+)
+refresh_btn.pack(side=LEFT)
 # ========================================================================================================================================================================================
 # Bảng Expense
 # ========================================================================================================================================================================================
 
 # Frame
 expense_label = CTkLabel(left_top, text="Expense Records", font=('Nirmala UI', 14, 'bold'), anchor = S)
-expense_label.pack(side="top", expand=True, fill=BOTH)
+expense_label.pack(side="top", expand=False, anchor = N)
 
 expense_table_frame = CTkFrame(left_frame)
 expense_table_frame.pack(side="top", expand=True, fill=BOTH, anchor = E)
@@ -492,6 +509,7 @@ expense_table.heading(4, text="Item Price")
 expense_table.heading(5, text="Purchase Date")
 
 expense_table.bind("<ButtonRelease-1>", select_record_ex)
+expense_table.configure(selectmode='extended')
 
 # Phần bên dưới cái bảng
 expense_functions = CTkFrame(left_frame, corner_radius=0)
@@ -589,7 +607,7 @@ cur_date_ex.grid(row=4, column=1, sticky=EW, padx=(10, 0))
 
 # Frame
 income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 14, 'bold'), anchor=S)
-income_label.pack(side="top", expand=True, fill=BOTH)
+income_label.pack(side="top", expand=False, anchor = N)
 
 income_table_frame = CTkFrame(right_frame)
 income_table_frame.pack(side="top", expand=True, fill=BOTH, anchor = W)
@@ -704,7 +722,7 @@ total_frame = CTkFrame(main_tab,
                        corner_radius = 0                         
                        )
 
-total_frame.pack(side = "bottom", expand=True, fill=BOTH, anchor = S)
+total_frame.pack(side = "bottom", expand=True, anchor = N)
 
 Total = CTkLabel(total_frame, text='Total Balance', font=('Nirmala UI', 18, 'bold'))
 Total.pack(side = 'top')
