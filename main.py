@@ -20,11 +20,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image
 
 # Khởi tạo đối tượng database cho expense và income
-expense_data = Database(db='finance.db', 
-                        table_name='expense_record')
+expense_data = Database(db = 'finance.db', 
+                        table_name = 'expense_record')
 
-income_data = Database(db='finance.db', 
-                       table_name='income_record')
+income_data = Database(db = 'finance.db', 
+                       table_name = 'income_record')
 
 # Biến toàn cục
 count_ex = 0
@@ -71,6 +71,17 @@ def validate_datetime(string : str) -> bool:
             return False
         i += 1
     return False
+
+# Hàm tính số ngày giữa hai ngày cụ thể
+def calculate_days_between(start_date: str, end_date: str) -> int:
+    try:
+        start = dt.datetime.strptime(start_date, '%d/%m/%Y')
+        end = dt.datetime.strptime(end_date, '%d/%m/%Y')
+        delta = end - start
+        return delta.days
+    except ValueError:
+        messagebox.showerror("Error", "Invalid date format. Please use DD/MM/YYYY.")
+        return 0
 
 # Hàm format số (thêm dấu .)
 def format_amount(amount):
@@ -145,7 +156,7 @@ def saveRecord_in():
         count_in += 1
     
         update_data()    
-
+    
 # Thiết lập ngày hiện tại
 def setDate_ex():
     dopvarex.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
@@ -171,22 +182,20 @@ def clearEntries_in():
 # Lấy các bản ghi từ database
 def fetch_records_ex():
     global count_ex
-    count_ex = len(expense_data.fetch_ex())
+    count_ex = 1
     records = expense_data.fetch_ex()
     for rec in records:
-        if len(rec) == 5:
-            expense_table.insert(parent='', index= END, iid=count_ex, values=(rec[0], rec[1], rec[2], rec[3], rec[4]))
-            count_ex += 1
+        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex, rec[0], rec[1], format_amount(rec[2]), rec[3]))
+        count_ex += 1
 
 def fetch_records_in():
     global count_in
-    count_in = len(income_data.fetch_ex())
+    count_in = 1
     records = income_data.fetch_in()
     for rec in records:
-        if len(rec) == 5:
-            income_table.insert(parent='', index= END, iid=count_in, values=(rec[0], rec[1], rec[2], rec[3], rec[4]))
-            count_in += 1
-            
+        income_table.insert(parent='', index= END, iid=count_in, values=(count_in, rec[0], rec[1], format_amount(rec[2]), rec[3]))
+        count_in += 1
+
 # Chọn bản ghi để cập nhật
 def select_record_ex(event):
     global selected_rowid_ex
@@ -243,8 +252,6 @@ def update_record_ex():
         
     except Exception as ep:
         messagebox.showerror(f'Error: {ep}')
-
-
 
 def update_record_in():
     global selected_rowid_in
@@ -305,13 +312,12 @@ def deleteRow_ex():
         
         # Đặt lại `selected_rowid_ex`
         selected_rowid_ex = 0
+        
+        update_data()
+        
     else:
         messagebox.showwarning("Warning", "Please select a record to delete.")
-    clearEntries_ex()
-    update_total_balance()
-    update_plot('months')
-    update_plot('years')
-    update_plot('days')
+    
 
 def deleteRow_in():
     global selected_rowid_in
@@ -327,28 +333,11 @@ def deleteRow_in():
         
         # Đặt lại `selected_rowid_ex`
         selected_rowid_in = 0
+        
+        update_data()
+        
     else:
         messagebox.showwarning("Warning", "Please select a record to delete.")
-
-# Tính tổng số dư giữa thu nhập và chi tiêu
-def totalBalance():
-    # Lấy tổng các bản ghi chi tiêu và thu nhập
-    total_expense = expense_data.fetch_ex()
-    total_income = income_data.fetch_in()
-    
-    # Tính tổng chi tiêu
-    total_expense_sum = sum([(record[2]) for record in total_expense if record[2] not in [None, '']])
-    # Tính tổng thu nhập
-    total_income_sum = sum([(record[2]) for record in total_income if record[2] not in [None, '']])
-
-    # Tính số dư còn lại
-    balance_remaining = total_income_sum - total_expense_sum
-
-    # Kiểm tra nếu số dư âm
-    # if balance_remaining < 0:
-    #     messagebox.showwarning("Warning", f"You have overspent! 😡 TRY TO SPEND LESS!\nBalance Remaining: {format_amount(balance_remaining)} đ")
-    # else:
-    #     messagebox.showinfo("Current Balance", f"Total Expense: {format_amount(total_expense_sum)}đ\nTotal Income: {format_amount(total_income_sum)}đ\nBalance Remaining: {format_amount(balance_remaining)}đ")
 
 # Tạo Treeview với config mặc định là expand = True và fill = BOTH
 def create_treeview(frame, columns):
@@ -361,13 +350,12 @@ def create_treeview(frame, columns):
 
 # Hàm ngắt chương trình
 def close_program():  
-    main_tab.destroy()
-    plot_tab.destroy()
     root.quit()
-    root.destroy()
+
     
 # Cập nhật tổng thu/chi
 def update_total_balance():
+    global init_budget
     # Tính toán balance từ các bản ghi
     total_expense_records = expense_data.fetch_ex()
     total_income_records = income_data.fetch_in()
@@ -377,9 +365,9 @@ def update_total_balance():
 
     # Cập nhật giá trị balance
     balance = total_income - total_expense
-    res = "{:,.0f}".format(balance).replace(",",".")
-    total_balance_label.configure(text=f"{res} đ ") 
-       
+    res = format_amount(balance)
+    total_balance_label.configure(text = f"{res} đ ")
+
 # Hàm để gắn vào cuối mỗi hàm sau khi chỉnh sửa data
 def update_data():
     clearEntries_ex()
@@ -391,28 +379,8 @@ def update_data():
 
 # Phục hồi record 
 def retrive_records():
-    global count_ex, count_in
-    count_ex = 0
-    count_in = 0
-    for expense in expense_data.fetch_ex():
-        expense_table.insert(parent='', index = END, iid = count_ex, values=(
-            count_ex + 1,
-            expense[0],
-            expense[1],   
-            format_amount(expense[2]),
-            expense[3]
-        ))
-        count_ex += 1
-    
-    for income in income_data.fetch_in():
-        income_table.insert(parent='', index = END, iid = count_in, values=(
-            count_in + 1,
-            income[0],
-            income[1],   
-            format_amount(income[2]),
-            income[3]
-        ))
-        count_in += 1
+    fetch_records_ex()
+    fetch_records_in()
     
 # ========================================================================================================================================================================================
 # Create tab control
@@ -454,21 +422,25 @@ namevarin = StringVar() # Name
 amtvarin = IntVar() # Amount
 dopvarin = StringVar() # Date
 
+init_budget = IntVar()
 # 1 đống frame, đừng hỏi k giải thích được bằng lời đâu
 top_frame = CTkFrame(main_tab)
-top_frame.pack(side = 'top', expand=True, fill=BOTH) 
+top_frame.pack(side = TOP, expand=True, fill=BOTH) 
+
+bottom_frame = CTkFrame(main_tab)
+bottom_frame.pack(side = BOTTOM, expand=True, fill=BOTH) 
 
 left_frame = CTkFrame(top_frame)
-left_frame.pack(side = 'left', expand=True, fill=BOTH) 
+left_frame.pack(side = LEFT, expand=True, fill=BOTH) 
 
 right_frame = CTkFrame(top_frame)
-right_frame.pack(side = 'right', expand=True, fill=BOTH) 
+right_frame.pack(side = RIGHT, expand=True, fill=BOTH) 
 
 left_top = CTkFrame(left_frame)
-left_top.pack(side="top", expand=False, fill=BOTH)
+left_top.pack(side = TOP, expand=False, fill=BOTH)
 
 right_top = CTkFrame(right_frame)
-right_top.pack(side="top", expand=False, fill=BOTH)
+right_top.pack(side = TOP, expand=False, fill=BOTH)
 
 refresh_btn = CTkButton(
     left_top,
@@ -481,21 +453,21 @@ refresh_btn = CTkButton(
     height = 10,
     width = 10,
 )
-refresh_btn.pack(side=LEFT)
+refresh_btn.pack(side = LEFT)
 # ========================================================================================================================================================================================
 # Bảng Expense
 # ========================================================================================================================================================================================
 
 # Frame
 expense_label = CTkLabel(left_top, text="Expense Records", font=('Nirmala UI', 14, 'bold'), anchor = S)
-expense_label.pack(side="top", expand=False, anchor = N)
+expense_label.pack(side = TOP, expand=False, anchor = N)
 
 expense_table_frame = CTkFrame(left_frame)
-expense_table_frame.pack(side="top", expand=True, fill=BOTH, anchor = E)
+expense_table_frame.pack(side = TOP, expand=True, fill=BOTH, anchor = E)
 
 # Treeview
 expense_table = create_treeview(expense_table_frame, (1, 2, 3, 4, 5))
-expense_table.pack(side = "left")
+expense_table.pack(side = LEFT)
 
 expense_table.column(1, anchor=CENTER, stretch=NO, width=30)
 expense_table.column(2, anchor=CENTER,width=140)
@@ -513,7 +485,7 @@ expense_table.configure(selectmode='extended')
 
 # Phần bên dưới cái bảng
 expense_functions = CTkFrame(left_frame, corner_radius=0)
-expense_functions.pack(side = "bottom", expand=True, fill=BOTH)
+expense_functions.pack(side = BOTTOM, expand=True, fill=BOTH)
 
 CTkLabel(expense_functions, text='Expense Category', font=f).grid(row=0, column=0, sticky=W)
 CTkLabel(expense_functions, text='Item Name', font=f).grid(row=1, column=0, sticky=W)
@@ -525,7 +497,9 @@ categories_ex = ["Food",
                  "Bills", 
                  "Entertainment", 
                  "Clothes", 
-                 "Transport", 
+                 "Transport",
+                 "Healthcare",
+                 "Household", 
                  "Others"
                  # Thêm gì thì thêm
                  ]
@@ -537,13 +511,13 @@ category_ex_menu = CTkOptionMenu(expense_functions,
 category_ex_menu.set("Select Category")
 category_ex_menu.grid(row=0, column=1, sticky=EW, padx=(10, 0))
 
-item_name_ex = CTkEntry(expense_functions, font=f, textvariable=namevarex)
+item_name_ex = CTkEntry(expense_functions, font=f, textvariable = namevarex)
 item_name_ex.grid(row=1, column=1, sticky=EW, padx=(10, 0))
 
-item_amt_ex = CTkEntry(expense_functions, font=f, textvariable=amtvarex)
+item_amt_ex = CTkEntry(expense_functions, font=f, textvariable = amtvarex)
 item_amt_ex.grid(row=2, column=1, sticky=EW, padx=(10, 0))
 
-transaction_date_ex = CTkEntry(expense_functions, font=f, textvariable=dopvarex)
+transaction_date_ex = CTkEntry(expense_functions, font=f, textvariable = dopvarex)
 transaction_date_ex.grid(row=3, column=1, sticky=EW, padx=(10, 0))
 
 # Nút bấm
@@ -607,14 +581,14 @@ cur_date_ex.grid(row=4, column=1, sticky=EW, padx=(10, 0))
 
 # Frame
 income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 14, 'bold'), anchor=S)
-income_label.pack(side="top", expand=False, anchor = N)
+income_label.pack(side = TOP, expand=False, anchor = N)
 
 income_table_frame = CTkFrame(right_frame)
-income_table_frame.pack(side="top", expand=True, fill=BOTH, anchor = W)
+income_table_frame.pack(side = TOP, expand=True, fill=BOTH, anchor = W)
 
 # Treeview
 income_table = create_treeview(income_table_frame, columns=(1, 2, 3, 4, 5))
-income_table.pack(side="right")
+income_table.pack(side = RIGHT)
 
 income_table.column(1, anchor=CENTER, stretch=NO, width=30)
 income_table.column(2, anchor=CENTER,width=140)
@@ -631,18 +605,22 @@ income_table.bind("<ButtonRelease-1>", select_record_in)
 
 # Phần bên dưới cái bảng
 income_functions = CTkFrame(right_frame, corner_radius=0)
-income_functions.pack(side="bottom", expand=True, fill=BOTH, anchor = S)
+income_functions.pack(side = BOTTOM, expand=True, fill=BOTH, anchor = S)
 
 CTkLabel(income_functions, text='Income Category', font=f).grid(row=0, column=0, sticky=W)
 CTkLabel(income_functions, text='Item Name', font=f).grid(row=1, column=0, sticky=W)
 CTkLabel(income_functions, text='Item Amount', font=f).grid(row=2, column=0, sticky=W)
 CTkLabel(income_functions, text='Date (DD/MM/YYYY)', font=f).grid(row=3, column=0, sticky=W)
 
-categories_in = ["Salary", 
-                 "Gift", 
+categories_in = ["Salary",
+                 "Gift",
+                 "Investments",
+                 "Savings",
+                 "Interest" ,
                  "Others"
-                 # Thêm gì thì thêm
                  ]
+                 # Thêm gì thì thêm
+
 category_in_menu = CTkOptionMenu(income_functions, 
                                  values = categories_in, 
                                  fg_color = '#b19cd9', 
@@ -718,17 +696,22 @@ cur_date_in = CTkButton(
 cur_date_in.grid(row=4, column=1, sticky=EW, padx=(10, 0))
 
 # Total balance
-total_frame = CTkFrame(main_tab,
-                       corner_radius = 0                         
+total_frame = CTkFrame(bottom_frame,
+                       corner_radius = 0,
+                       fg_color = '#dbdbdb',
+                       bg_color = '#dbdbdb'                         
                        )
 
-total_frame.pack(side = "bottom", expand=True, anchor = N)
+total_frame.pack(side = RIGHT, expand = True, fill = BOTH, anchor = N)
 
 Total = CTkLabel(total_frame, text='Total Balance', font=('Nirmala UI', 18, 'bold'))
-Total.pack(side = 'top')
+Total.pack(side = TOP, anchor = N)
 
-total_balance_label = CTkLabel(total_frame, text="yo", font=('Nirmala UI', 18, 'bold'), text_color = "blue")
-total_balance_label.pack(side = "top", anchor = N, expand=True)
+total_balance_label = CTkLabel(total_frame, text = "", font=('Nirmala UI', 18, 'bold'), text_color = "blue")
+total_balance_label.pack(side = TOP, anchor = N, expand=True)
+
+total_balance_warning = CTkLabel(total_frame, text = "", font=('Nirmala UI', 16), text_color = "red")
+total_balance_warning.pack(side = TOP, anchor = N, expand=True)
 
 # Style 
 style = ttk.Style()
@@ -736,17 +719,17 @@ style.theme_use("clam")
 style.map("Treeview")
 style.configure("Treeview", rowheight=25)
 style.configure("Treeview.Heading", font=('Nirmala UI', 14, 'bold'))
-style.configure("Treeview", font=('Nirmala UI', 12), foreground='black', background='white')
+style.configure("Treeview", font=('Nirmala UI', 13), foreground='black', background='white')
 
 # Scrollbar
 scrollbar1 = Scrollbar(expense_table_frame, orient='vertical')
 scrollbar1.configure(command=expense_table.yview)
-scrollbar1.pack(side="right", fill="y")
+scrollbar1.pack(side = RIGHT, fill="y")
 expense_table.config(yscrollcommand=scrollbar1.set)
 
 scrollbar2 = Scrollbar(income_table_frame, orient='vertical')
 scrollbar2.configure(command=income_table.yview)
-scrollbar2.pack(side="left", fill="y")
+scrollbar2.pack(side = LEFT, fill="y")
 income_table.config(yscrollcommand=scrollbar2.set)
 
 # ========================================================================================================================================================================================
@@ -761,10 +744,13 @@ fplt = {
     'size': 14 
 }
 # Frame
-plot_frame = CTkFrame(plot_tab, bg_color= 'light gray')
-plot_frame.pack(expand=True, fill=BOTH)
+plot_frame = CTkFrame(plot_tab, 
+                      bg_color= 'light gray',
+                      height = 400)
+plot_frame.pack(side = TOP, expand=True, fill = X)
 plt.style.use('fivethirtyeight')
 
+text_frame = CTkFrame(plot_tab, bg_color= 'light gray')
 # Hàm vẽ đồ thị
 def plot_summary(period):
     # Lấy data từ file database
@@ -781,6 +767,13 @@ def plot_summary(period):
     fig.subplots_adjust(bottom=0.2)
     plt.gcf().autofmt_xdate()
     
+    def spi():
+        ax.spines['bottom'].set_visible(True)
+        ax.spines['left'].set_visible(True)
+        ax.spines['bottom'].set_color('gray')
+        ax.spines['left'].set_color('gray')
+        ax.spines['bottom'].set_linewidth(0.5)
+        ax.spines['left'].set_linewidth(0.5)
     if period == 'days':
         last_date = max(expense_dates + income_dates)
         date_list = [(last_date - dt.timedelta(days=i)).strftime('%d/%m') for i in range(6, -1, -1)]
@@ -805,6 +798,8 @@ def plot_summary(period):
         plt.xticks(x, date_list)
         ax.set_title('Last 7 Days Summary', fontdict = fplt)
         
+        spi()
+        
     elif period == 'months':
         current_year = dt.datetime.now().year
         date_list = [f'{month:02d}/{current_year}' for month in range(1, 13)]
@@ -826,33 +821,38 @@ def plot_summary(period):
 
         ax.bar(x+0.1, [expense_12month_sum[date] for date in date_list], color = '#66b3d4', edgecolor='blue', label='Expenses', width=0.2)
         ax.bar(x-0.1, [income_12month_sum[date] for date in date_list], color = '#b19cd9', edgecolor='blue', label='Income', alpha=0.7, width=0.2)
+
         plt.xticks(x, date_list)
         ax.set_title('Current Year 12 Months Summary', fontdict = fplt)
 
+        spi()
+        
     elif period == 'years':
         last_date = max(expense_dates + income_dates)
         date_list = [(last_date - dt.timedelta(days=365 * i)).strftime('%Y') for i in range(3, -1, -1)]
         
         x = np.arange(4)
-        expense_7year_sum = {date: 0 for date in date_list}
-        income_7year_sum = {date: 0 for date in date_list}
+        expense_4year_sum = {date: 0 for date in date_list}
+        income_4year_sum = {date: 0 for date in date_list}
 
         # Tính tổng của từng năm
         for date, amount in zip(expense_dates, expense_amounts):
             date_str = date.strftime('%Y')
-            if date_str in expense_7year_sum:
-                expense_7year_sum[date_str] += amount
+            if date_str in expense_4year_sum:
+                expense_4year_sum[date_str] += amount
 
         for date, amount in zip(income_dates, income_amounts):
             date_str = date.strftime('%Y')
-            if date_str in income_7year_sum:
-                income_7year_sum[date_str] += amount
+            if date_str in income_4year_sum:
+                income_4year_sum[date_str] += amount
 
-        ax.bar(x+0.1, [expense_7year_sum[date] for date in date_list], color = '#66b3d4', edgecolor = 'blue', label='Expenses', width = 0.2)
-        ax.bar(x-0.1, [income_7year_sum[date] for date in date_list], color= '#b19cd9', edgecolor = 'blue', label='Income', alpha=0.7, width = 0.2)
+        ax.bar(x+0.1, [expense_4year_sum[date] for date in date_list], color = '#66b3d4', edgecolor = 'blue', label='Expenses', width = 0.2)
+        ax.bar(x-0.1, [income_4year_sum[date] for date in date_list], color= '#b19cd9', edgecolor = 'blue', label='Income', alpha=0.7, width = 0.2)
         plt.xticks(x, date_list)
         ax.set_title('Last 4 Years Summary', fontdict = fplt)
-
+        
+        spi()
+        
     elif period == 'pie':
         current_month = dt.datetime.now().month
         current_year = dt.datetime.now().year
@@ -879,16 +879,16 @@ def plot_summary(period):
         
         ax2.pie(income_summary['Amount'], labels=income_summary.index, autopct='%1.1f%%', startangle=90)
         ax2.set_title('Income Categories (Current Month)', fontdict = fplt)
-
+        
     ax.legend(loc = 'upper left')
     ax.tick_params(axis='x', rotation=30)
-    
+    ax.grid(axis='x', linestyle='--', alpha=0)
     ax.get_yaxis().set_major_formatter(FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
 
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas.draw()
     canvas.get_tk_widget().pack(expand=True, fill=BOTH)
-
+    
 # Cập nhật giá trị cho đồ thị
 def update_plot(period):
     # Xóa đồ thị trước khi hiện cái mới
@@ -898,38 +898,40 @@ def update_plot(period):
     plot_frame.pack_propagate(False)
     plot_summary(period)
 
+
 # Nút bấm
-btn_frame = Frame(plot_tab)
+btn_frame = CTkFrame(plot_tab, bg_color = 'light gray')
+btn_frame.pack(side = BOTTOM)
 
 btn_days = CTkButton(
     btn_frame, 
     text="Summary by Days", 
     command=lambda: update_plot('days')
     )
-btn_days.pack(side=LEFT, padx=5, pady=5)
+btn_days.pack(side = LEFT, padx=5, pady=5)
 
 btn_months = CTkButton(
     btn_frame, 
     text="Summary by Months", 
     command=lambda: update_plot('months')
     )
-btn_months.pack(side=LEFT, padx=5, pady=5)
+btn_months.pack(side = LEFT, padx=5, pady=5)
 
 btn_years = CTkButton(
     btn_frame,
     text="Summary by Years", 
     command=lambda: update_plot('years')
     )
-btn_years.pack(side=LEFT, padx=5, pady=5)
+btn_years.pack(side = LEFT, padx=5, pady=5)
 
 btn_pie_chart = CTkButton(
     btn_frame, 
     text="Pie Chart", 
     command=lambda: update_plot('pie')
     )
-btn_pie_chart.pack(side=LEFT, padx=5, pady=5)
+btn_pie_chart.pack(side = LEFT, padx=5, pady=5)
 
-btn_frame.pack(side=TOP, fill=X)
+btn_frame.pack(side = TOP, fill=X)
 
 # ctk config 
 ctk.set_appearance_mode("light")
