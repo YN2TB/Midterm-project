@@ -76,7 +76,6 @@ def validate_datetime(string : str) -> bool:
 def format_amount(amount):
         return f"{amount:,.0f}".replace(",", ".")
     
-# Hàm bỏ dấu .
 def parse_amount(amount_str: str) -> int:
     try:
         clean_str = (amount_str).replace(",", "").replace(".", "")
@@ -128,7 +127,6 @@ def saveRecord_in():
     elif str(item_amount_in.get()).isnumeric() == False or [',', '.'] in list(item_amount_in.get()):
         messagebox.showwarning('Warning', 'Please enter a valid number')
     else:
-        # Lưu vào cơ sở dữ liệu
         income_data.insert_in(
             category_in=category_in_menu.get(),
             name_in=item_name_in.get(),
@@ -186,21 +184,21 @@ def fetch_records_in():
         count_in += 1
 
 # Chọn bản ghi để cập nhật
-def select_record_ex():
+def select_record_ex(event):
     global selected_rowid_ex
     selected = expense_table.focus()    
     val = expense_table.item(selected, 'values')
     try:
         selected_rowid_ex = val[0]
-        d = val[4]
         category_ex_menu.set(val[1])
         namevarex.set(val[2])
         amountvarex.set(parse_amount(val[3]))
+        d = val[4]
         datevarex.set(str(d))
     except IndexError:
         pass
 
-def select_record_in():
+def select_record_in(event):
     global selected_rowid_in
     selected = income_table.focus()    
     val = income_table.item(selected, 'values')
@@ -301,11 +299,11 @@ def deleteRow_ex():
         # Đặt lại `selected_rowid_ex`
         selected_rowid_ex = 0
         
-        update_data()
-        
     else:
         messagebox.showwarning("Warning", "Please select a record to delete.")
-    
+
+    update_data()
+
 
 def deleteRow_in():
     global selected_rowid_in
@@ -343,7 +341,6 @@ def close_program():
     
 # Cập nhật tổng thu/chi
 def update_total_balance():
-    global init_budget
     # Tính toán balance từ các bản ghi
     total_expense_records = expense_data.fetch_ex()
     total_income_records = income_data.fetch_in()
@@ -467,7 +464,7 @@ expense_table.heading(3, text="Item Name", )
 expense_table.heading(4, text="Item Price")
 expense_table.heading(5, text="Purchase Date")
 
-expense_table.bind("<ButtonRelease-1>", select_record_ex())
+expense_table.bind("<ButtonRelease-1>", select_record_ex)
 
 # Phần bên dưới cái bảng
 expense_functions = CTkFrame(left_frame, corner_radius=0)
@@ -587,7 +584,7 @@ income_table.heading(3, text="Item Name", )
 income_table.heading(4, text="Item Price")
 income_table.heading(5, text="Income Date")
 
-income_table.bind("<ButtonRelease-1>", select_record_in())
+income_table.bind("<ButtonRelease-1>", select_record_in)
 
 # Phần bên dưới cái bảng
 income_functions = CTkFrame(right_frame, corner_radius=0)
