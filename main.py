@@ -88,12 +88,12 @@ def format_amount(amount):
         return f"{amount:,.0f}".replace(",", ".")
     
 # Hàm bỏ dấu .
-def parse_amount(amount_str):
+def parse_amount(amount_str: str) -> int:
     try:
-        clean_str = amount_str.replace(",", "").replace(".", "")
-        return clean_str
+        clean_str = (amount_str).replace(",", "").replace(".", "")
+        return int(clean_str)
     except ValueError:
-        return 0.0
+        return 0    
 
 # Hàm lưu bản ghi expense/income
 def saveRecord_ex():
@@ -106,21 +106,21 @@ def saveRecord_ex():
         messagebox.showwarning('Warning', 'Please insert an item')
     elif transaction_date_ex.get() == '' or validate_datetime(transaction_date_ex.get()) == False:
         messagebox.showwarning('Warning', 'Please choose a date')
-    elif str(item_amt_ex.get()).isnumeric() == False or [',', '.'] in list(item_amt_ex.get()):
+    elif str(item_amount_ex.get()).isnumeric() == False or [',', '.'] in list(item_amount_ex.get()):
         messagebox.showwarning('Warning', 'Please enter a valid number')
     else:
-    # Lưu vào cơ sở dữ liệu
+        # Lưu vào cơ sở dữ liệu
         expense_data.insert_ex(
         category_ex=category_ex_menu.get(),
         name_ex=item_name_ex.get(),
-        price_ex=int(item_amt_ex.get()),
+        price_ex=int(item_amount_ex.get()),
         date_ex=transaction_date_ex.get()
         )
         expense_table.insert(parent='', index = END, iid=count_ex, values=(
             count_ex + 1,
             category_ex_menu.get(),
             item_name_ex.get(),   
-            format_amount(int(item_amt_ex.get())),
+            format_amount(int(item_amount_ex.get())),
             transaction_date_ex.get()
         ))
         count_ex += 1
@@ -136,21 +136,21 @@ def saveRecord_in():
         messagebox.showwarning('Warning', 'Please insert an item')
     elif transaction_date_in.get() == '' or validate_datetime(transaction_date_in.get()) == False:
         messagebox.showwarning('Warning', 'Please enter a validated date')
-    elif str(item_amt_in.get()).isnumeric() == False or [',', '.'] in list(item_amt_in.get()):
+    elif str(item_amount_in.get()).isnumeric() == False or [',', '.'] in list(item_amount_in.get()):
         messagebox.showwarning('Warning', 'Please enter a valid number')
     else:
         # Lưu vào cơ sở dữ liệu
         income_data.insert_in(
             category_in=category_in_menu.get(),
             name_in=item_name_in.get(),
-            price_in=int(item_amt_in.get()),
+            price_in=int(item_amount_in.get()),
             date_in=transaction_date_in.get()
         )
         income_table.insert(parent='', index = END, iid=count_in, values=(
             count_in + 1,
             category_in_menu.get(),
             item_name_in.get(),
-            format_amount(int(item_amt_in.get())),
+            format_amount(int(item_amount_in.get())),
             transaction_date_in.get()
         ))
         count_in += 1
@@ -159,23 +159,23 @@ def saveRecord_in():
     
 # Thiết lập ngày hiện tại
 def setDate_ex():
-    dopvarex.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
+    datevarex.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
 
 def setDate_in():
-    dopvarin.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
+    datevarin.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
 
 # Xóa các trường nhập liệu
 def clearEntries_ex():
     category_ex_menu.set('')
     item_name_ex.delete(0, 'end')
-    item_amt_ex.delete(0, 'end')
+    item_amount_ex.delete(0, 'end')
     transaction_date_ex.delete(0, 'end')
     category_ex_menu.set("Select Category")
 
 def clearEntries_in():
     category_in_menu.set('')
     item_name_in.delete(0, 'end')
-    item_amt_in.delete(0, 'end')
+    item_amount_in.delete(0, 'end')
     transaction_date_in.delete(0, 'end')
     category_in_menu.set("Select Category")
 
@@ -197,7 +197,7 @@ def fetch_records_in():
         count_in += 1
 
 # Chọn bản ghi để cập nhật
-def select_record_ex(event):
+def select_record_ex():
     global selected_rowid_ex
     selected = expense_table.focus()    
     val = expense_table.item(selected, 'values')
@@ -206,12 +206,12 @@ def select_record_ex(event):
         d = val[4]
         category_ex_menu.set(val[1])
         namevarex.set(val[2])
-        amtvarex.set(parse_amount(val[3])) #type: ignore
-        dopvarex.set(str(d))
+        amountvarex.set(parse_amount(val[3]))
+        datevarex.set(str(d))
     except IndexError:
         pass
 
-def select_record_in(event):
+def select_record_in():
     global selected_rowid_in
     selected = income_table.focus()    
     val = income_table.item(selected, 'values')
@@ -220,8 +220,7 @@ def select_record_in(event):
         d = val[4]
         category_in_menu.set(val[1])
         namevarin.set(val[2])
-        amtvarin.set(parse_amount(val[3])) #type: ignore
-        dopvarin.set(str(d))
+        amountvarin.set(parse_amount(val[3]))
     except IndexError:
         pass
 
@@ -235,8 +234,8 @@ def update_record_ex():
             rowid=selected_rowid_ex,
             category_ex=category_ex_menu.get(),
             name_ex=namevarex.get(),
-            price_ex=amtvarex.get(),
-            date_ex=dopvarex.get()
+            price_ex=amountvarex.get(),
+            date_ex=datevarex.get()
         )
         
         # Cập nhật trên Treeview
@@ -244,8 +243,8 @@ def update_record_ex():
             selected_rowid_ex,
             category_ex_menu.get(),
             namevarex.get(),
-            format_amount(amtvarex.get()),
-            dopvarex.get()
+            format_amount(amountvarex.get()),
+            datevarex.get()
         ))
         
         update_data()
@@ -262,8 +261,8 @@ def update_record_in():
             rowid=selected_rowid_in,
             category_in=category_in_menu.get(),
             name_in=namevarin.get(),
-            price_in=amtvarin.get(),
-            date_in=dopvarin.get()
+            price_in=amountvarin.get(),
+            date_in=datevarin.get()
         )
         
         # Cập nhật trên Treeview
@@ -271,8 +270,8 @@ def update_record_in():
             selected_rowid_in,
             category_in_menu.get(),
             namevarin.get(),
-            format_amount(amtvarin.get()),
-            dopvarin.get()
+            format_amount(amountvarin.get()),
+            datevarin.get()
         ))
         
         update_data()
@@ -414,15 +413,14 @@ f = ('Nirmala UI', 14)
 
 category_ex_menu = StringVar() # Category
 namevarex = StringVar() # Name
-amtvarex = IntVar() # Amount
-dopvarex = StringVar() # Date
+amountvarex = IntVar() # Amount
+datevarex = StringVar() # Date
 
 category_in_menu = StringVar() # Category
 namevarin = StringVar() # Name
-amtvarin = IntVar() # Amount
-dopvarin = StringVar() # Date
+amountvarin = IntVar() # Amount
+datevarin = StringVar() # Date
 
-init_budget = IntVar()
 # 1 đống frame, đừng hỏi k giải thích được bằng lời đâu
 top_frame = CTkFrame(main_tab)
 top_frame.pack(side = TOP, expand=True, fill=BOTH) 
@@ -480,8 +478,7 @@ expense_table.heading(3, text="Item Name", )
 expense_table.heading(4, text="Item Price")
 expense_table.heading(5, text="Purchase Date")
 
-expense_table.bind("<ButtonRelease-1>", select_record_ex)
-expense_table.configure(selectmode='extended')
+expense_table.bind("<ButtonRelease-1>", select_record_ex())
 
 # Phần bên dưới cái bảng
 expense_functions = CTkFrame(left_frame, corner_radius=0)
@@ -514,10 +511,10 @@ category_ex_menu.grid(row=0, column=1, sticky=EW, padx=(10, 0))
 item_name_ex = CTkEntry(expense_functions, font=f, textvariable = namevarex)
 item_name_ex.grid(row=1, column=1, sticky=EW, padx=(10, 0))
 
-item_amt_ex = CTkEntry(expense_functions, font=f, textvariable = amtvarex)
-item_amt_ex.grid(row=2, column=1, sticky=EW, padx=(10, 0))
+item_amount_ex = CTkEntry(expense_functions, font=f, textvariable = amountvarex)
+item_amount_ex.grid(row=2, column=1, sticky=EW, padx=(10, 0))
 
-transaction_date_ex = CTkEntry(expense_functions, font=f, textvariable = dopvarex)
+transaction_date_ex = CTkEntry(expense_functions, font=f, textvariable = datevarex)
 transaction_date_ex.grid(row=3, column=1, sticky=EW, padx=(10, 0))
 
 # Nút bấm
@@ -601,7 +598,7 @@ income_table.heading(3, text="Item Name", )
 income_table.heading(4, text="Item Price")
 income_table.heading(5, text="Income Date")
 
-income_table.bind("<ButtonRelease-1>", select_record_in)
+income_table.bind("<ButtonRelease-1>", select_record_in())
 
 # Phần bên dưới cái bảng
 income_functions = CTkFrame(right_frame, corner_radius=0)
@@ -633,10 +630,10 @@ category_in_menu.grid(row=0, column=1, sticky=EW, padx=(10, 0))
 item_name_in = CTkEntry(income_functions, font=f, textvariable=namevarin)
 item_name_in.grid(row=1, column=1, sticky=EW, padx=(10, 0))
 
-item_amt_in = CTkEntry(income_functions, font=f, textvariable=amtvarin)
-item_amt_in.grid(row=2, column=1, sticky=EW, padx=(10, 0))
+item_amount_in = CTkEntry(income_functions, font=f, textvariable=amountvarin)
+item_amount_in.grid(row=2, column=1, sticky=EW, padx=(10, 0))
 
-transaction_date_in = CTkEntry(income_functions, font=f, textvariable=dopvarin)
+transaction_date_in = CTkEntry(income_functions, font=f, textvariable=datevarin)
 transaction_date_in.grid(row=3, column=1, sticky=EW, padx=(10, 0))
 
 # Nút bấm
