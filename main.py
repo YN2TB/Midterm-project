@@ -877,11 +877,14 @@ def plot_summary(period):
         ax2.pie(income_summary['Amount'], labels=income_summary.index, autopct='%1.1f%%', startangle=90)
         ax2.set_title('Income Categories (Current Month)', fontdict = fplt)
         
-    ax.legend(loc = 'upper left')
-    ax.tick_params(axis='x', rotation=30)
-    ax.grid(axis='x', linestyle='--', alpha=0)
-    ax.get_yaxis().set_major_formatter(FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-
+    try:
+        ax.legend(loc = 'upper left')
+        ax.tick_params(axis='x', rotation=30)
+        ax.grid(axis='x', linestyle='--', alpha=0)
+        ax.get_yaxis().set_major_formatter(FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+    except: 
+        pass
+    
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas.draw()
     canvas.get_tk_widget().pack(expand=True, fill=BOTH)
@@ -894,7 +897,6 @@ def update_plot(period):
     plt.close('all')
     plot_frame.pack_propagate(False)
     plot_summary(period)
-
 
 # Nút bấm
 btn_frame = CTkFrame(plot_tab, bg_color = 'light gray')
