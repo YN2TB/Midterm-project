@@ -72,17 +72,6 @@ def validate_datetime(string : str) -> bool:
         i += 1
     return False
 
-# Hàm tính số ngày giữa hai ngày cụ thể
-def calculate_days_between(start_date: str, end_date: str) -> int:
-    try:
-        start = dt.datetime.strptime(start_date, '%d/%m/%Y')
-        end = dt.datetime.strptime(end_date, '%d/%m/%Y')
-        delta = end - start
-        return delta.days
-    except ValueError:
-        messagebox.showerror("Error", "Invalid date format. Please use DD/MM/YYYY.")
-        return 0
-
 # Hàm format số (thêm dấu .)
 def format_amount(amount):
         return f"{amount:,.0f}".replace(",", ".")
