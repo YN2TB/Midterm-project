@@ -361,6 +361,8 @@ def update_data():
     update_plot('months')
     update_plot('years')
     update_plot('days')
+    refreshData_ex()
+    refreshData_in()
 
 # Phục hồi record 
 def retrive_records():
