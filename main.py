@@ -73,7 +73,7 @@ def validate_datetime(string : str) -> bool:
     return False
 
 # Hàm format số (thêm dấu ,)
-def format_amount(amount):
+def format_amount(amount: int):
         return f"{amount:,.0f}".replace(",", ",")
     
 def parse_amount(amount_str: str) -> int:
@@ -99,22 +99,16 @@ def saveRecord_ex():
     else:
         # Lưu vào cơ sở dữ liệu
         expense_data.insert_ex(
-        category_ex=category_ex_menu.get(),
-        name_ex=item_name_ex.get(),
-        price_ex=int(item_amount_ex.get()),
-        date_ex=transaction_date_ex.get()
+            category_ex=category_ex_menu.get(),
+            name_ex=item_name_ex.get(),
+            price_ex=int(item_amount_ex.get()),
+            date_ex=transaction_date_ex.get()
         )
-        expense_table.insert(parent='', index = END, iid=count_ex, values=(
-            count_ex + 1,
-            category_ex_menu.get(),
-            item_name_ex.get(),   
-            format_amount(int(item_amount_ex.get())),
-            transaction_date_ex.get()
-        ))
-        count_ex += 1
-        
-        update_data()
-        
+        clearEntries_ex()
+        update_total_balance()
+        update_plot('months')
+        update_plot('years')
+        update_plot('days')
 def saveRecord_in():
     global count_in
     
@@ -133,17 +127,14 @@ def saveRecord_in():
             price_in=int(item_amount_in.get()),
             date_in=transaction_date_in.get()
         )
-        income_table.insert(parent='', index = END, iid=count_in, values=(
-            count_in + 1,
-            category_in_menu.get(),
-            item_name_in.get(),
-            format_amount(int(item_amount_in.get())),
-            transaction_date_in.get()
-        ))
+
         count_in += 1
     
-        update_data()    
-    
+        clearEntries_in()
+        update_total_balance()
+        update_plot('months')
+        update_plot('years')
+        update_plot('days')
 # Thiết lập ngày hiện tại
 def setDate_ex():
     datevarex.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
@@ -222,7 +213,7 @@ def update_record_ex():
             rowid=selected_rowid_ex,
             category_ex=category_ex_menu.get(),
             name_ex=namevarex.get(),
-            price_ex=amountvarex.get(),
+            price_ex=int(amountvarex.get()),
             date_ex=datevarex.get()
         )
         
@@ -235,8 +226,11 @@ def update_record_ex():
             datevarex.get()
         ))
         
-        update_data()
-        
+        clearEntries_ex()
+        update_total_balance()
+        update_plot('months')
+        update_plot('years')
+        update_plot('days')
     except Exception as ep:
         pass
 
@@ -249,10 +243,10 @@ def update_record_in():
             rowid=selected_rowid_in,
             category_in=category_in_menu.get(),
             name_in=namevarin.get(),
-            price_in=amountvarin.get(),
+            price_in=int(amountvarin.get()),
             date_in=datevarin.get()
         )
-        
+        income_table.delete(selected_rowid_in)
         # Cập nhật trên Treeview
         income_table.item(selected, text="", values=(
             selected_rowid_in,
@@ -262,8 +256,11 @@ def update_record_in():
             datevarin.get()
         ))
         
-        update_data()
-        
+        clearEntries_in()
+        update_total_balance()
+        update_plot('months')
+        update_plot('years')
+        update_plot('days')
     except Exception as ep:
         pass
 
@@ -275,38 +272,40 @@ def refreshData_ex():
     for item in expense_table.get_children():
         expense_table.delete(item)
     # Lấy lại tất cả các bản ghi từ database
-    retrive_records()
+    fetch_records_ex()
 
 def refreshData_in():
     # Xóa tất cả bản ghi hiện có trong Treeview
     for item in income_table.get_children():
         income_table.delete(item)
     # Lấy lại tất cả các bản ghi từ database
-    retrive_records()
+    fetch_records_in()
 
 # Xóa bản ghi đã chọn
 def deleteRow_ex():
     global selected_rowid_ex 
     # Kiểm tra xem một hàng có được chọn không
-    try:
-        if selected_rowid_ex:
-            # Xóa bản ghi trong database
-            expense_data.remove_ex(selected_rowid_ex)
-            
-            # Xóa bản ghi trong Treeview
-            selected = expense_table.selection()  # Lấy mục được chọn
-            for item in selected:
-                expense_table.delete(item)
-            
-            # Đặt lại `selected_rowid_ex`
-            selected_rowid_ex = 0
-            
-            update_data()
-            
-        else:
-            messagebox.showwarning("Warning", "Please select a record to delete.")
-    except Exception as e: 
-        print(e)
+    if selected_rowid_ex:
+        # Xóa bản ghi trong database
+        expense_data.remove_ex(int(selected_rowid_ex))
+        
+        # Xóa bản ghi trong Treeview
+        selected = expense_table.selection()  # Lấy mục được chọn
+        for item in selected:
+            expense_table.delete(item)
+        
+        # Đặt lại `selected_rowid_ex`
+        selected_rowid_ex = 0
+        
+        
+    else:
+        messagebox.showwarning("Warning", "Please select a record to delete.")
+
+    clearEntries_ex()
+    update_total_balance()
+    update_plot('months')
+    update_plot('years')
+    update_plot('days')
 
 
 def deleteRow_in():
@@ -314,7 +313,7 @@ def deleteRow_in():
     # Kiểm tra xem một hàng có được chọn không
     if selected_rowid_in:
         # Xóa bản ghi trong database
-        income_data.remove_in(selected_rowid_in)
+        income_data.remove_in(int(selected_rowid_in))
         
         # Xóa bản ghi trong Treeview
         selected = income_table.selection()  # Lấy mục được chọn
@@ -324,10 +323,14 @@ def deleteRow_in():
         # Đặt lại `selected_rowid_ex`
         selected_rowid_in = 0
         
-        update_data()
         
     else:
         messagebox.showwarning("Warning", "Please select a record to delete.")
+    clearEntries_in()
+    update_total_balance()
+    update_plot('months')
+    update_plot('years')
+    update_plot('days')
 
 # Tạo Treeview với config mặc định là expand = True và fill = BOTH
 def create_treeview(frame, columns):
@@ -358,17 +361,6 @@ def update_total_balance():
     total_balance_label.configure(text = f"{res} đ ")
     if balance < 0:
         broke.configure(text = "You've outspent, spend more responsible")
-
-# Hàm để gắn vào cuối mỗi hàm sau khi chỉnh sửa data
-def update_data():
-    clearEntries_ex()
-    clearEntries_in()
-    update_total_balance()
-    update_plot('months')
-    update_plot('years')
-    update_plot('days')
-    refreshData_ex()
-    refreshData_in()
 
 # Phục hồi record 
 def retrive_records():
@@ -417,7 +409,7 @@ amountvarin = IntVar() # Amount
 datevarin = StringVar() # Date
 
 # Uhhhh frame, frame
-top_frame = CTkFrame(main_tab)
+top_frame = CTkFrame(main_tab, corner_radius=0)
 top_frame.pack(side = TOP, expand=True, fill=BOTH) 
 
 bottom_frame = CTkFrame(main_tab)
@@ -456,11 +448,11 @@ expense_label = CTkLabel(left_top, text="Expense Records", font=('Nirmala UI', 2
                                                                  , 'bold'), anchor = S)
 expense_label.pack(side = TOP, expand=False, anchor = N)
 
-expense_table_frame = CTkFrame(left_frame)
+expense_table_frame = Frame(left_frame)
 expense_table_frame.pack(side = TOP, expand=True, fill=BOTH, anchor = E)
 
 # Treeview
-expense_table = create_treeview(expense_table_frame, (1, 2, 3, 4, 5))
+expense_table = create_treeview(expense_table_frame, columns = (1, 2, 3, 4, 5))
 expense_table.pack(side = LEFT)
 
 expense_table.column(1, anchor=CENTER, stretch=NO, width=40)
@@ -576,14 +568,14 @@ cur_date_ex.grid(row=4, column=1, sticky=EW, padx=(10, 0))
 income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 22, 'bold'), anchor=S)
 income_label.pack(side = TOP, expand=False, anchor = N)
 
-income_table_frame = CTkFrame(right_frame)
+income_table_frame = Frame(right_frame)
 income_table_frame.pack(side = TOP, expand=True, fill=BOTH, anchor = W)
 
 # Treeview
 income_table = create_treeview(income_table_frame, columns=(1, 2, 3, 4, 5))
 income_table.pack(side = RIGHT)
 
-income_table.column(1, anchor=CENTER, stretch=NO, width=30)
+income_table.column(1, anchor=CENTER, stretch=NO, width=40)
 income_table.column(2, anchor=CENTER,width=140)
 income_table.column(3, anchor=CENTER,width=150)
 income_table.column(4, anchor=CENTER,width=140)
@@ -943,4 +935,5 @@ update_total_balance()
 retrive_records()
 update_plot('days')
 
+# print(expense_data.fetch_ex())
 root.mainloop() 

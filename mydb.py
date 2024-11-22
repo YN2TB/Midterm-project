@@ -62,17 +62,17 @@ class Database:
         self.cursor.execute(query, (category_in, name_in, price_in, date_in, rowid))
         self.conn.commit()
         
-    def remove_ex(self, rowid):
+    def remove_ex(self, rowid:int):
         # Xoá bản ghi dựa trên rowid
         query = f'DELETE FROM {self.table_name} WHERE rowid=?'
         self.cursor.execute(query, (rowid,))
         self.conn.commit()
         
-    def remove_in(self, rowid):
+    def remove_in(self, rowid:int):
         # Xoá bản ghi dựa trên rowid
         query = f'DELETE FROM {self.table_name} WHERE rowid=?'
         self.cursor.execute(query, (rowid,))
         self.conn.commit()
     
     def __del__(self):
-        self.conn.close()
+        self.conn.close() 
