@@ -822,7 +822,7 @@ def plot_summary(period):
         except:
             last_date = dt.datetime.now().year
             return last_date
-        date_list = [(last_date - dt.timedelta(days=365 * i)).strftime('%Y') for i in range(3, -1, -1)]
+        date_list = [(last_date - dt.timedelta(days=365.25 * i)).strftime('%Y') for i in range(3, -1, -1)]
         
         x = np.arange(4)
         expense_4year_sum = {date: 0 for date in date_list}
