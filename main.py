@@ -166,7 +166,7 @@ def fetch_records_ex():
     count_ex = 0
     records = expense_data.fetch_ex()
     for rec in records:
-        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex+1, rec[0], rec[1], (rec[2]), rec[3]))
+        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex+1, rec[0], rec[1], format_amount(rec[2]), rec[3]))
         count_ex += 1
 
 def fetch_records_in():
