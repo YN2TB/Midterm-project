@@ -15,6 +15,7 @@ import tkinter as tk
 from mydb import *
 from tkinter import ttk
 import datetime as dt
+import time
 from tkinter import messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image
@@ -109,6 +110,7 @@ def saveRecord_ex():
         update_plot('months')
         update_plot('years')
         update_plot('days')
+        refreshData_ex()
 def saveRecord_in():
     global count_in
     
@@ -135,6 +137,7 @@ def saveRecord_in():
         update_plot('months')
         update_plot('years')
         update_plot('days')
+        refreshData_in()
 # Thiết lập ngày hiện tại
 def setDate_ex():
     datevarex.set(f'{dt.datetime.now().day}/{dt.datetime.now().month}/{dt.datetime.now().year}')
@@ -163,7 +166,7 @@ def fetch_records_ex():
     count_ex = 0
     records = expense_data.fetch_ex()
     for rec in records:
-        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex+1, rec[0], rec[1], format_amount(rec[2]), rec[3]))
+        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex+1, rec[0], rec[1], (rec[2]), rec[3]))
         count_ex += 1
 
 def fetch_records_in():
@@ -226,11 +229,12 @@ def update_record_ex():
             datevarex.get()
         ))
         
-        clearEntries_ex()
         update_total_balance()
         update_plot('months')
         update_plot('years')
         update_plot('days')
+        clearEntries_ex()
+        
     except Exception as ep:
         pass
 
@@ -256,11 +260,12 @@ def update_record_in():
             datevarin.get()
         ))
         
-        clearEntries_in()
         update_total_balance()
         update_plot('months')
         update_plot('years')
         update_plot('days')
+        clearEntries_in()
+        
     except Exception as ep:
         pass
 
@@ -287,7 +292,7 @@ def deleteRow_ex():
     # Kiểm tra xem một hàng có được chọn không
     if selected_rowid_ex:
         # Xóa bản ghi trong database
-        expense_data.remove_ex(int(selected_rowid_ex))
+        expense_data.remove_ex(selected_rowid_ex)
         
         # Xóa bản ghi trong Treeview
         selected = expense_table.selection()  # Lấy mục được chọn
@@ -301,19 +306,17 @@ def deleteRow_ex():
     else:
         messagebox.showwarning("Warning", "Please select a record to delete.")
 
-    clearEntries_ex()
     update_total_balance()
     update_plot('months')
     update_plot('years')
     update_plot('days')
-
 
 def deleteRow_in():
     global selected_rowid_in
     # Kiểm tra xem một hàng có được chọn không
     if selected_rowid_in:
         # Xóa bản ghi trong database
-        income_data.remove_in(int(selected_rowid_in))
+        income_data.remove_in(selected_rowid_in)
         
         # Xóa bản ghi trong Treeview
         selected = income_table.selection()  # Lấy mục được chọn
@@ -359,14 +362,30 @@ def update_total_balance():
     balance = total_income - total_expense
     res = format_amount(balance)
     total_balance_label.configure(text = f"{res} đ ")
-    if balance < 0:
-        broke.configure(text = "You've outspent, spend more responsible")
 
 # Phục hồi record 
 def retrive_records():
     fetch_records_ex()
     fetch_records_in()
     
+def totalBalance():
+    # Lấy tổng các bản ghi chi tiêu và thu nhập
+    total_expense = expense_data.fetch_ex()
+    total_income = income_data.fetch_in()
+    
+    # Tính tổng chi tiêu
+    total_expense_sum = sum([(record[2]) for record in total_expense if record[2] not in [None, '']])
+    # Tính tổng thu nhập
+    total_income_sum = sum([(record[2]) for record in total_income if record[2] not in [None, '']])
+
+    # Tính số dư còn lại
+    balance_remaining = total_income_sum - total_expense_sum
+
+    # Kiểm tra nếu số dư âm
+    if balance_remaining < 0:
+        messagebox.showwarning("Warning", f"You have overspent! 😡 TRY TO SPEND LESS!\nBalance Remaining: {format_amount(balance_remaining)} đ")
+    else:
+        messagebox.showinfo("Current Balance", f"Total Expense: {format_amount(total_expense_sum)}đ\nTotal Income: {format_amount(total_income_sum)}đ\nBalance Remaining: {format_amount(balance_remaining)}đ")
 # ========================================================================================================================================================================================
 # Create tab control
 # ========================================================================================================================================================================================
@@ -689,14 +708,11 @@ total_frame = CTkFrame(bottom_frame,
 
 total_frame.pack(side = TOP, expand = True, fill = BOTH, anchor = N)
 
-Total = CTkLabel(total_frame, text='Total Balance', font=('Nirmala UI', 22, 'bold'))
+Total = CTkButton(total_frame, text='Total Balance', font=('Nirmala UI', 18, 'bold'), command=totalBalance)
 Total.pack(side = TOP, anchor = N)
 
 total_balance_label = CTkLabel(total_frame, text = "", font=('Nirmala UI', 22, 'bold'), text_color = "blue")
 total_balance_label.pack(side = TOP, anchor = N, expand=True)
-
-broke = CTkLabel(total_frame, text = "You've outspent, spend more responsibly", font = f, text_color = 'red')
-broke.pack(side = TOP, anchor = N)
 
 # Style 
 style = ttk.Style()
