@@ -2,6 +2,8 @@
 # Init
 # ========================================================================================================================================================================================
 
+# https://github.com/YN2TB/Midterm-project
+
 import re
 import numpy as np
 import pandas as pd
@@ -310,6 +312,7 @@ def deleteRow_ex():
     update_plot('months')
     update_plot('years')
     update_plot('days')
+    clearEntries_ex()
 
 def deleteRow_in():
     global selected_rowid_in
@@ -329,11 +332,11 @@ def deleteRow_in():
         
     else:
         messagebox.showwarning("Warning", "Please select a record to delete.")
-    clearEntries_in()
     update_total_balance()
     update_plot('months')
     update_plot('years')
     update_plot('days')
+    clearEntries_in()
 
 # Tạo Treeview với config mặc định là expand = True và fill = BOTH
 def create_treeview(frame, columns):
