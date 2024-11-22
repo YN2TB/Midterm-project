@@ -208,7 +208,7 @@ def select_record_in(event):
         namevarin.set(val[2])
         amountvarin.set(parse_amount(val[3]))
         d = val[4]
-        datevarex.set(str(d))
+        datevarin.set(str(d))
     except IndexError:
         pass
 
@@ -265,7 +265,7 @@ def update_record_in():
         update_data()
         
     except Exception as ep:
-        messagebox.showerror(f'Error: {ep}')
+        pass
 
 
 
@@ -286,24 +286,27 @@ def refreshData_in():
 
 # Xóa bản ghi đã chọn
 def deleteRow_ex():
-    global selected_rowid_ex
+    global selected_rowid_ex 
     # Kiểm tra xem một hàng có được chọn không
-    if selected_rowid_ex:
-        # Xóa bản ghi trong database
-        expense_data.remove_ex(selected_rowid_ex)
-        
-        # Xóa bản ghi trong Treeview
-        selected = expense_table.selection()  # Lấy mục được chọn
-        for item in selected:
-            expense_table.delete(item)
-        
-        # Đặt lại `selected_rowid_ex`
-        selected_rowid_ex = 0
-        
-    else:
-        messagebox.showwarning("Warning", "Please select a record to delete.")
-
-    update_data()
+    try:
+        if selected_rowid_ex:
+            # Xóa bản ghi trong database
+            expense_data.remove_ex(selected_rowid_ex)
+            
+            # Xóa bản ghi trong Treeview
+            selected = expense_table.selection()  # Lấy mục được chọn
+            for item in selected:
+                expense_table.delete(item)
+            
+            # Đặt lại `selected_rowid_ex`
+            selected_rowid_ex = 0
+            
+            update_data()
+            
+        else:
+            messagebox.showwarning("Warning", "Please select a record to delete.")
+    except Exception as e: 
+        print(e)
 
 
 def deleteRow_in():
@@ -354,8 +357,7 @@ def update_total_balance():
     res = format_amount(balance)
     total_balance_label.configure(text = f"{res} đ ")
     if balance < 0:
-        broke = CTkLabel(total_frame, text = "You've outspent, spend more responsible", font = f, text_color = 'red')
-        broke.pack(side = TOP, anchor = N)
+        broke.configure(text = "You've outspent, spend more responsible")
 
 # Hàm để gắn vào cuối mỗi hàm sau khi chỉnh sửa data
 def update_data():
@@ -461,7 +463,7 @@ expense_table_frame.pack(side = TOP, expand=True, fill=BOTH, anchor = E)
 expense_table = create_treeview(expense_table_frame, (1, 2, 3, 4, 5))
 expense_table.pack(side = LEFT)
 
-expense_table.column(1, anchor=CENTER, stretch=NO, width=30)
+expense_table.column(1, anchor=CENTER, stretch=NO, width=40)
 expense_table.column(2, anchor=CENTER,width=140)
 expense_table.column(3, anchor=CENTER,width=150)
 expense_table.column(4, anchor=CENTER,width=140)
@@ -700,6 +702,9 @@ Total.pack(side = TOP, anchor = N)
 
 total_balance_label = CTkLabel(total_frame, text = "", font=('Nirmala UI', 22, 'bold'), text_color = "blue")
 total_balance_label.pack(side = TOP, anchor = N, expand=True)
+
+broke = CTkLabel(total_frame, text = "You've outspent, spend more responsibly", font = f, text_color = 'red')
+broke.pack(side = TOP, anchor = N)
 
 # Style 
 style = ttk.Style()
