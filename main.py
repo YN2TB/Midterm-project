@@ -409,7 +409,7 @@ namevarin = StringVar() # Name
 amountvarin = IntVar() # Amount
 datevarin = StringVar() # Date
 
-# 1 đống frame, đừng hỏi k giải thích được bằng lời đâu
+# Uhhhh frame, frame
 top_frame = CTkFrame(main_tab)
 top_frame.pack(side = TOP, expand=True, fill=BOTH) 
 
