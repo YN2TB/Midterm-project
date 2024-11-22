@@ -169,18 +169,18 @@ def clearEntries_in():
 # Lấy các bản ghi từ database
 def fetch_records_ex():
     global count_ex
-    count_ex = 1
+    count_ex = 0
     records = expense_data.fetch_ex()
     for rec in records:
-        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex, rec[0], rec[1], format_amount(rec[2]), rec[3]))
+        expense_table.insert(parent='', index= END, iid=count_ex, values=(count_ex+1, rec[0], rec[1], format_amount(rec[2]), rec[3]))
         count_ex += 1
 
 def fetch_records_in():
     global count_in
-    count_in = 1
+    count_in = 0
     records = income_data.fetch_in()
     for rec in records:
-        income_table.insert(parent='', index= END, iid=count_in, values=(count_in, rec[0], rec[1], format_amount(rec[2]), rec[3]))
+        income_table.insert(parent='', index= END, iid=count_in, values=(count_in+1, rec[0], rec[1], format_amount(rec[2]), rec[3]))
         count_in += 1
 
 # Chọn bản ghi để cập nhật
@@ -204,10 +204,11 @@ def select_record_in(event):
     val = income_table.item(selected, 'values')
     try:
         selected_rowid_in = val[0]
-        d = val[4]
         category_in_menu.set(val[1])
         namevarin.set(val[2])
         amountvarin.set(parse_amount(val[3]))
+        d = val[4]
+        datevarex.set(str(d))
     except IndexError:
         pass
 
@@ -237,7 +238,7 @@ def update_record_ex():
         update_data()
         
     except Exception as ep:
-        messagebox.showerror(f'Error: {ep}')
+        pass
 
 def update_record_in():
     global selected_rowid_in
@@ -352,6 +353,9 @@ def update_total_balance():
     balance = total_income - total_expense
     res = format_amount(balance)
     total_balance_label.configure(text = f"{res} đ ")
+    if balance < 0:
+        broke = CTkLabel(total_frame, text = "You've outspent, spend more responsible", font = f, text_color = 'red')
+        broke.pack(side = TOP, anchor = N)
 
 # Hàm để gắn vào cuối mỗi hàm sau khi chỉnh sửa data
 def update_data():
@@ -375,7 +379,7 @@ def retrive_records():
 
 root = CTk()
 root.title("Expense Tracker") 
-root.geometry('1000x500')
+root.geometry('1280x720')
 root.state('zoomed')
 root.resizable(width=True, height=True)
 
@@ -689,7 +693,7 @@ total_frame = CTkFrame(bottom_frame,
                        bg_color = '#dbdbdb'                         
                        )
 
-total_frame.pack(side = RIGHT, expand = True, fill = BOTH, anchor = N)
+total_frame.pack(side = TOP, expand = True, fill = BOTH, anchor = N)
 
 Total = CTkLabel(total_frame, text='Total Balance', font=('Nirmala UI', 22, 'bold'))
 Total.pack(side = TOP, anchor = N)
@@ -899,28 +903,28 @@ btn_frame.pack(side = BOTTOM)
 btn_days = CTkButton(
     btn_frame, 
     text="Summary by Days", 
-    command = update_plot('days')
+    command = lambda: update_plot('days')
     )
 btn_days.pack(side = LEFT, padx=5, pady=5)
 
 btn_months = CTkButton(
     btn_frame, 
     text="Summary by Months", 
-    command=update_plot('months')
+    command= lambda: update_plot('months')
     )
 btn_months.pack(side = LEFT, padx=5, pady=5)
 
 btn_years = CTkButton(
     btn_frame,
     text="Summary by Years", 
-    command=update_plot('years')
+    command= lambda: update_plot('years')
     )
 btn_years.pack(side = LEFT, padx=5, pady=5)
 
 btn_pie_chart = CTkButton(
     btn_frame, 
     text="Pie Chart", 
-    command=update_plot('pie')
+    command= lambda: update_plot('pie')
     )
 btn_pie_chart.pack(side = LEFT, padx=5, pady=5)
 
