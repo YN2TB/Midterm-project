@@ -72,9 +72,9 @@ def validate_datetime(string : str) -> bool:
         i += 1
     return False
 
-# Hàm format số (thêm dấu .)
+# Hàm format số (thêm dấu ,)
 def format_amount(amount):
-        return f"{amount:,.0f}".replace(",", ".")
+        return f"{amount:,.0f}".replace(",", ",")
     
 def parse_amount(amount_str: str) -> int:
     try:
@@ -899,28 +899,28 @@ btn_frame.pack(side = BOTTOM)
 btn_days = CTkButton(
     btn_frame, 
     text="Summary by Days", 
-    command=lambda: update_plot('days')
+    command = update_plot('days')
     )
 btn_days.pack(side = LEFT, padx=5, pady=5)
 
 btn_months = CTkButton(
     btn_frame, 
     text="Summary by Months", 
-    command=lambda: update_plot('months')
+    command=update_plot('months')
     )
 btn_months.pack(side = LEFT, padx=5, pady=5)
 
 btn_years = CTkButton(
     btn_frame,
     text="Summary by Years", 
-    command=lambda: update_plot('years')
+    command=update_plot('years')
     )
 btn_years.pack(side = LEFT, padx=5, pady=5)
 
 btn_pie_chart = CTkButton(
     btn_frame, 
     text="Pie Chart", 
-    command=lambda: update_plot('pie')
+    command=update_plot('pie')
     )
 btn_pie_chart.pack(side = LEFT, padx=5, pady=5)
 
