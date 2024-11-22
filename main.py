@@ -376,6 +376,7 @@ def retrive_records():
 root = CTk()
 root.title("Expense Tracker") 
 root.geometry('1000x500')
+root.state('zoomed')
 root.resizable(width=True, height=True)
 
 # Tắt cửa sổ sẽ đồng thời dừng chương trình
@@ -397,7 +398,7 @@ tabControl.pack(expand = 1, fill ="both")
 # ========================================================================================================================================================================================
 
 # font
-f = ('Nirmala UI', 14)
+f = ('Nirmala UI', 18)
 
 category_ex_menu = StringVar() # Category
 namevarex = StringVar() # Name
@@ -445,7 +446,8 @@ refresh_btn.pack(side = LEFT)
 # ========================================================================================================================================================================================
 
 # Frame
-expense_label = CTkLabel(left_top, text="Expense Records", font=('Nirmala UI', 14, 'bold'), anchor = S)
+expense_label = CTkLabel(left_top, text="Expense Records", font=('Nirmala UI', 22
+                                                                 , 'bold'), anchor = S)
 expense_label.pack(side = TOP, expand=False, anchor = N)
 
 expense_table_frame = CTkFrame(left_frame)
@@ -486,12 +488,12 @@ categories_ex = ["Food",
                  "Healthcare",
                  "Household", 
                  "Others"
-                 # Thêm gì thì thêm
                  ]
 category_ex_menu = CTkOptionMenu(expense_functions, 
                                  values = categories_ex, 
                                  fg_color = "#66b3d4",
                                  button_color = "#66b3d4",
+                                 font = f
                                  )
 category_ex_menu.set("Select Category")
 category_ex_menu.grid(row=0, column=1, sticky=EW, padx=(10, 0))
@@ -565,7 +567,7 @@ cur_date_ex.grid(row=4, column=1, sticky=EW, padx=(10, 0))
 # ========================================================================================================================================================================================
 
 # Frame
-income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 14, 'bold'), anchor=S)
+income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 18, 'bold'), anchor=S)
 income_label.pack(side = TOP, expand=False, anchor = N)
 
 income_table_frame = CTkFrame(right_frame)
@@ -604,13 +606,13 @@ categories_in = ["Salary",
                  "Interest" ,
                  "Others"
                  ]
-                 # Thêm gì thì thêm
 
 category_in_menu = CTkOptionMenu(income_functions, 
                                  values = categories_in, 
                                  fg_color = '#b19cd9', 
                                  button_color = '#b19cd9', 
                                  button_hover_color = "#916ed4",
+                                 font = f
                                  )
 category_in_menu.set("Select Category")
 category_in_menu.grid(row=0, column=1, sticky=EW, padx=(10, 0))
@@ -689,13 +691,13 @@ total_frame = CTkFrame(bottom_frame,
 
 total_frame.pack(side = RIGHT, expand = True, fill = BOTH, anchor = N)
 
-Total = CTkLabel(total_frame, text='Total Balance', font=('Nirmala UI', 18, 'bold'))
+Total = CTkLabel(total_frame, text='Total Balance', font=('Nirmala UI', 22, 'bold'))
 Total.pack(side = TOP, anchor = N)
 
-total_balance_label = CTkLabel(total_frame, text = "", font=('Nirmala UI', 18, 'bold'), text_color = "blue")
+total_balance_label = CTkLabel(total_frame, text = "", font=('Nirmala UI', 22, 'bold'), text_color = "blue")
 total_balance_label.pack(side = TOP, anchor = N, expand=True)
 
-total_balance_warning = CTkLabel(total_frame, text = "", font=('Nirmala UI', 16), text_color = "red")
+total_balance_warning = CTkLabel(total_frame, text = "", font=('Nirmala UI', 20), text_color = "red")
 total_balance_warning.pack(side = TOP, anchor = N, expand=True)
 
 # Style 
@@ -703,8 +705,8 @@ style = ttk.Style()
 style.theme_use("clam")
 style.map("Treeview")
 style.configure("Treeview", rowheight=25)
-style.configure("Treeview.Heading", font=('Nirmala UI', 14, 'bold'))
-style.configure("Treeview", font=('Nirmala UI', 13), foreground='black', background='white')
+style.configure("Treeview.Heading", font=('Nirmala UI', 18, 'bold'))
+style.configure("Treeview", font=('Nirmala UI', 17), foreground='black', background='white')
 
 # Scrollbar
 scrollbar1 = Scrollbar(expense_table_frame, orient='vertical')
@@ -726,13 +728,13 @@ fplt = {
     'family': 'Nirmala UI',
     'color': 'black',
     'weight': 'normal',
-    'size': 14 
+    'size': 18
 }
 # Frame
 plot_frame = CTkFrame(plot_tab, 
                       bg_color= 'light gray',
                       height = 400)
-plot_frame.pack(side = TOP, expand=True, fill = X)
+plot_frame.pack(side = TOP, expand=True, fill = BOTH)
 plt.style.use('fivethirtyeight')
 
 text_frame = CTkFrame(plot_tab, bg_color= 'light gray')
@@ -750,7 +752,6 @@ def plot_summary(period):
 
     fig, ax = plt.subplots(figsize=(10, 5))
     fig.subplots_adjust(bottom=0.2)
-    plt.gcf().autofmt_xdate()
     
     def spi():
         ax.spines['bottom'].set_visible(True)
@@ -865,13 +866,14 @@ def plot_summary(period):
         income_summary = income_df.groupby('Category').sum()
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-
-        ax1.pie(expense_summary['Amount'], labels=expense_summary.index, autopct='%1.1f%%', startangle=90)
+        color = ['#6d904f', '#8f4bd6', '#098bcd', '#e5ae38', '#fc4f30', '#8ad64b', '#e7ef50', '#ef50a3', '#810f7c']
+        ax1.pie(expense_summary['Amount'], colors = color, autopct='%1.1f%%', startangle=90)
         ax1.set_title('Expense Categories (Current Month)', fontdict = fplt)
+        ax1.legend(expense_summary.index, loc = 'upper left')
         
-        ax2.pie(income_summary['Amount'], labels=income_summary.index, autopct='%1.1f%%', startangle=90)
+        ax2.pie(income_summary['Amount'], colors = color, autopct='%1.1f%%', startangle=90)
         ax2.set_title('Income Categories (Current Month)', fontdict = fplt)
-        
+        ax2.legend(income_summary.index, loc = 'best')
     try:
         ax.legend(loc = 'upper left')
         ax.tick_params(axis='x', rotation=30)
