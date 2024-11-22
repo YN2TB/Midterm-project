@@ -760,9 +760,12 @@ def plot_summary(period):
         ax.spines['bottom'].set_linewidth(0.5)
         ax.spines['left'].set_linewidth(0.5)
     if period == 'days':
-        last_date = max(expense_dates + income_dates)
+        try:
+            last_date = max(expense_dates + income_dates)
+        except:
+            last_date = dt.datetime.now().strftime('%d/%m')
+            return last_date
         date_list = [(last_date - dt.timedelta(days=i)).strftime('%d/%m') for i in range(6, -1, -1)]
-        
         x = np.arange(7)
         expense_7day_sum = {date: 0 for date in date_list}
         income_7day_sum = {date: 0 for date in date_list}
@@ -813,7 +816,11 @@ def plot_summary(period):
         spi()
         
     elif period == 'years':
-        last_date = max(expense_dates + income_dates)
+        try:
+            last_date = max(expense_dates + income_dates)
+        except:
+            last_date = dt.datetime.now().year
+            return last_date
         date_list = [(last_date - dt.timedelta(days=365 * i)).strftime('%Y') for i in range(3, -1, -1)]
         
         x = np.arange(4)
