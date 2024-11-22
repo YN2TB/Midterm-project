@@ -567,7 +567,7 @@ cur_date_ex.grid(row=4, column=1, sticky=EW, padx=(10, 0))
 # ========================================================================================================================================================================================
 
 # Frame
-income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 18, 'bold'), anchor=S)
+income_label = CTkLabel(right_top, text="Income Records", font=('Nirmala UI', 22, 'bold'), anchor=S)
 income_label.pack(side = TOP, expand=False, anchor = N)
 
 income_table_frame = CTkFrame(right_frame)
@@ -697,16 +697,13 @@ Total.pack(side = TOP, anchor = N)
 total_balance_label = CTkLabel(total_frame, text = "", font=('Nirmala UI', 22, 'bold'), text_color = "blue")
 total_balance_label.pack(side = TOP, anchor = N, expand=True)
 
-total_balance_warning = CTkLabel(total_frame, text = "", font=('Nirmala UI', 20), text_color = "red")
-total_balance_warning.pack(side = TOP, anchor = N, expand=True)
-
 # Style 
 style = ttk.Style()
 style.theme_use("clam")
 style.map("Treeview")
-style.configure("Treeview", rowheight=25)
+style.configure("Treeview", rowheight=30)
 style.configure("Treeview.Heading", font=('Nirmala UI', 18, 'bold'))
-style.configure("Treeview", font=('Nirmala UI', 17), foreground='black', background='white')
+style.configure("Treeview", font=('Nirmala UI', 16), foreground='black', background='white')
 
 # Scrollbar
 scrollbar1 = Scrollbar(expense_table_frame, orient='vertical')
